@@ -11,30 +11,18 @@ import (
 // DisableLogging set up logging. default is false (logging)
 var DisableLogging bool
 
-// TrustedHeaderField is a header field that developer trusted in their env.
-// e.g. Upstream proxy server's special header that only server can setup
-// need to avoid use common forgry-able header fields.
-var TrustedHeaderField string
-
 // CIDR is a middleware that check given CIDR rules and return 403 Forbidden
 // when user is not coming from allowed source. CIDRs accepts a list of CIDRs,
 // separated by comma. (e.g. 127.0.0.1/32, ::1/128 )
 func CIDR(CIDRs string) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// retreieve user's connection origin from request remote addr
+		// retrieve user's connection origin from request remote addr
 		// need to split the host because original remoteAddr contains port
-		remoteAddr, _, splitErr := net.SplitHostPort(c.Request.RemoteAddr)
+		remoteAddr, _, splitErr := net.SplitHostPort(c.ClientIP())
 
 		if splitErr != nil {
 			c.AbortWithError(500, splitErr)
 			return
-		}
-
-		// if we have Trusted Header Field, and it exists, use it
-		if TrustedHeaderField != "" {
-			if trustedRemoteAddr := c.GetHeader(TrustedHeaderField); trustedRemoteAddr != "" {
-				remoteAddr = trustedRemoteAddr
-			}
 		}
 
 		// parse it into IP type
