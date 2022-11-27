@@ -16,19 +16,12 @@ var DisableLogging bool
 // separated by comma. (e.g. 127.0.0.1/32, ::1/128 )
 func CIDR(CIDRs string) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// retrieve user's connection origin from request remote addr
-		// need to split the host because original remoteAddr contains port
-		remoteAddr, _, splitErr := net.SplitHostPort(c.ClientIP())
-
-		if splitErr != nil {
-			c.AbortWithError(500, splitErr)
-			return
-		}
+		remoteAddr := c.ClientIP()
 
 		// parse it into IP type
 		remoteIP := net.ParseIP(remoteAddr)
 
-		// split CIDRs by comma, and we gonna check them one by one
+		// split CIDRs by comma, and we are going check them one by one
 		cidrSlices := strings.Split(CIDRs, ",")
 
 		// under of CIDR we were in
